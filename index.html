@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Tracker</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <img src="header-image.jpg" alt="Imagen de Encabezado">
+        <h1>Media Tracker</h1>
+    </header>
+
+    <div class="filters">
+        <input type="text" id="search" placeholder="Buscar por nombre...">
+        <select id="status-filter">
+            <option value="">Estado</option>
+            <option value="pendiente">Pendiente</option>
+            <option value="en progreso">En progreso</option>
+            <option value="terminado">Terminado</option>
+        </select>
+        <select id="format-filter">
+            <option value="">Formato</option>
+            <option value="serie">Serie</option>
+            <option value="pelicula">Película</option>
+            <option value="libro">Libro</option>
+        </select>
+        <select id="platform-filter">
+            <option value="">Plataforma</option>
+            <option value="netflix">Netflix</option>
+            <option value="amazon">Amazon</option>
+            <option value="hbo">HBO</option>
+            <option value="kindle">Kindle</option>
+        </select>
+    </div>
+    <button id="add-resource-btn">Agregar Recurso</button>
+    <main>
+        <section id="series-section" class="category">
+            <h2>Series</h2>
+            <div id="series-list"></div>
+        </section>
+
+        <section id="movies-section" class="category">
+            <h2>Películas</h2>
+            <div id="movies-list"></div>
+        </section>
+
+        <section id="books-section" class="category">
+            <h2>Libros</h2>
+            <div id="books-list"></div>
+        </section>
+    </main>
+
+    <!-- Modal para agregar recurso -->
+    <div id="add-resource-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <form id="add-resource-form">
+                <label for="resource-name">Nombre del Recurso:</label>
+                <input type="text" id="resource-name" required>
+
+                <label for="resource-genre">Género:</label>
+                <input type="text" id="resource-genre" required>
+
+                <label for="resource-platform">Plataforma:</label>
+                <input type="text" id="resource-platform" required>
+
+                <label for="resource-status">Estado:</label>
+                <select id="resource-status" required>
+                    <option value="pendiente">Pendiente</option>
+                    <option value="en progreso">En progreso</option>
+                    <option value="terminado">Terminado</option>
+                </select>
+
+                <label for="resource-format">Formato:</label>
+                <select id="resource-format" required>
+                    <option value="serie">Serie</option>
+                    <option value="pelicula">Película</option>
+                    <option value="libro">Libro</option>
+                </select>
+
+                <label for="resource-finish-date">Fecha de Terminación:</label>
+                <input type="date" id="resource-finish-date">
+
+                <label for="resource-rating">Valoración Final (1 a 5 estrellas):</label>
+                <input type="number" id="resource-rating" min="1" max="5">
+
+                <label for="resource-review">Reseña Personal:</label>
+                <textarea id="resource-review" rows="4"></textarea>
+
+                <button type="submit">Agregar Recurso</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 Media Tracker. Todos los derechos reservados.</p>
+    </footer>
+
+    <script src="index.js"></script>
+</body>
+</html>
