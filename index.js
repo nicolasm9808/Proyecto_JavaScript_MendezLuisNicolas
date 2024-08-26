@@ -1,5 +1,6 @@
 // Variables para los elementos del DOM
 const addResourceBtn = document.getElementById('add-resource-btn');
+const deleteAllBtn = document.getElementById('delete-all-btn');
 const addResourceModal = document.getElementById('add-resource-modal');
 const closeModalBtn = document.querySelector('.close-btn');
 const addResourceForm = document.getElementById('add-resource-form');
@@ -7,10 +8,26 @@ const seriesList = document.getElementById('series-list');
 const moviesList = document.getElementById('movies-list');
 const booksList = document.getElementById('books-list');
 
+let editingResource = null; // Variable para guardar el recurso que se está editando
+
+// Generador de IDs únicos (puedes usar librerías como UUID en producción)
+function generateUniqueId() {
+    return '_' + Math.random().toString(36).substr(2, 9);
+}
+
 // Abre el modal
-addResourceBtn.addEventListener('click', () => {
+addResourceBtn.addEventListener("click", () => {
     addResourceModal.style.display = 'block';
+    editingResource = null; // Resetea la edición
 });
+
+// Evento para eliminar todos los recursos
+deleteAllBtn.addEventListener('click', () => {
+    let confirmDeleteAll = confirm('¿Estás seguro que deseas eliminar todos los recursos?\n¡Esta acción no se puede deshacer!')
+    if (confirmDeleteAll) {
+        deleteAllResources();
+    }
+})
 
 // Cierra el modal
 closeModalBtn.addEventListener('click', () => {
@@ -24,7 +41,12 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// Maneja el envío del formulario para agregar un recurso
+// Cargar los recursos desde localStorage al cargar la página
+window.addEventListener('load', () => {
+    loadResourcesFromLocalStorage();
+});
+
+// Maneja el envío del formulario para agregar o editar un recurso
 addResourceForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
@@ -37,107 +59,193 @@ addResourceForm.addEventListener('submit', (event) => {
     const rating = document.getElementById('resource-rating').value;
     const review = document.getElementById('resource-review').value;
 
-    if (format === 'serie') {
-        addResourceToCategory(seriesList, name, genre, platform, status, finishDate, rating, review, format);
-    } else if (format === 'pelicula') {
-        addResourceToCategory(moviesList, name, genre, platform, status, finishDate, rating, review, format);
-    } else if (format === 'libro') {
-        addResourceToCategory(booksList, name, genre, platform, status, finishDate, rating, review, format);
+    const newResource = {
+        id: editingResource ? editingResource.id : generateUniqueId(),
+        name,
+        genre,
+        platform,
+        status,
+        finishDate,
+        rating,
+        review,
+        format
+    };
+
+    if (editingResource) {
+        // Actualiza el recurso existente
+        updateResource(newResource);
+    } else {
+        // Agrega un nuevo recurso
+        addResource(newResource);
     }
 
     // Limpia el formulario y cierra el modal
     addResourceForm.reset();
     addResourceModal.style.display = 'none';
+    saveResourcesToLocalStorage(); // Guarda los cambios en localStorage
 });
 
 // Función para agregar un recurso a una categoría específica
-function addResourceToCategory(category, name, genre, platform, status, finishDate, rating, review, format) {
+function addResourceToCategory(category, resource) {
     const resourceCard = document.createElement('div');
     resourceCard.className = 'resource-card';
+    resourceCard.dataset.id = resource.id; // Agregar un atributo de datos único
 
     resourceCard.innerHTML = `
-        <h3>${name}</h3>
-        <p><strong>Género:</strong> ${genre}</p>
-        <p><strong>Plataforma:</strong> ${platform}</p>
-        <p><strong>Estado:</strong> ${status}</p>
-        <p><strong>Formato:</strong> ${format}</p>
-        <p><strong>Fecha de Terminación:</strong> ${finishDate || 'N/A'}</p>
-        <p><strong>Valoración:</strong> ${rating ? '⭐'.repeat(rating) : 'N/A'}</p>
-        <p><strong>Reseña:</strong> ${review || 'N/A'}</p>
+        <h3>${resource.name}</h3>
+        <p><strong>Género:</strong> ${resource.genre}</p>
+        <p><strong>Plataforma:</strong> ${resource.platform}</p>
+        <p><strong>Estado:</strong> ${resource.status}</p>
+        <p><strong>Formato:</strong> ${resource.format}</p>
+        <p><strong>Fecha de Terminación:</strong> ${resource.finishDate || 'N/A'}</p>
+        <p><strong>Valoración:</strong> ${resource.rating ? '⭐'.repeat(resource.rating) : 'N/A'}</p>
+        <p><strong>Reseña:</strong> ${resource.review || 'N/A'}</p>
+        <button class="edit-btn">Editar</button>
+        <button class="delete-btn">Eliminar</button>
     `;
 
+    // Añadir funcionalidad de editar y eliminar
+    const editBtn = resourceCard.querySelector('.edit-btn');
+    const deleteBtn = resourceCard.querySelector('.delete-btn');
+
+    editBtn.addEventListener('click', () => editResource(resourceCard, resource));
+    deleteBtn.addEventListener('click', () => {
+        category.removeChild(resourceCard);
+        removeResourceFromLocalStorage(resource);
+    });
+
+    // Añadir la tarjeta al contenedor de la categoría
     category.appendChild(resourceCard);
-
-    // Guardar en LocalStorage
-    saveResourceToLocalStorage(name, genre, platform, status, finishDate, rating, review, format);
 }
 
-function saveResourceToLocalStorage(name, genre, platform, status, finishDate, rating, review, format) {
-    const resources = JSON.parse(localStorage.getItem('resources')) || [];
-    const resource = { name, genre, platform, status, finishDate, rating, review, format };
-    resources.push(resource);
-    localStorage.setItem('resources', JSON.stringify(resources));
+// Función para agregar un recurso a la categoría correcta
+function addResource(resource) {
+    if (resource.format === 'serie') {
+        addResourceToCategory(seriesList, resource);
+    } else if (resource.format === 'pelicula') {
+        addResourceToCategory(moviesList, resource);
+    } else if (resource.format === 'libro') {
+        addResourceToCategory(booksList, resource);
+    }
 }
 
-function loadResourcesFromLocalStorage() {
-    const resources = JSON.parse(localStorage.getItem('resources')) || [];
+// Función para editar un recurso, abre el modal e ingresa los datos pre existentes
+function editResource(card, resource) {
+    editingResource = resource;
+    document.getElementById('resource-name').value = resource.name;
+    document.getElementById('resource-genre').value = resource.genre;
+    document.getElementById('resource-platform').value = resource.platform;
+    document.getElementById('resource-status').value = resource.status;
+    document.getElementById('resource-format').value = resource.format;
+    document.getElementById('resource-finish-date').value = resource.finishDate;
+    document.getElementById('resource-rating').value = resource.rating;
+    document.getElementById('resource-review').value = resource.review;
 
-    resources.forEach(resource => {
-        const { name, genre, platform, status, finishDate, rating, review, format } = resource;
+    addResourceModal.style.display = 'block';
+}
 
-        if (format === 'serie') {
-            addResourceToCategory(seriesList, name, genre, platform, status, finishDate, rating, review, format);
-        } else if (format === 'pelicula') {
-            addResourceToCategory(moviesList, name, genre, platform, status, finishDate, rating, review, format);
-        } else if (format === 'libro') {
-            addResourceToCategory(booksList, name, genre, platform, status, finishDate, rating, review, format);
+// Función para actualizar un recurso
+function updateResource(updatedResource) {
+    // Actualiza el objeto de recurso
+    editingResource = updatedResource;
+
+    // Guarda los cambios en localStorage
+    saveResourcesToLocalStorage(); 
+
+    // Actualiza el DOM directamente
+    const resourceCards = document.querySelectorAll('.resource-card');
+    resourceCards.forEach((card) => {
+        const cardId = card.dataset.id;
+        if (cardId === updatedResource.id) { // Comparar con el identificador único
+            card.innerHTML = `
+                <h3>${updatedResource.name}</h3>
+                <p><strong>Género:</strong> ${updatedResource.genre}</p>
+                <p><strong>Plataforma:</strong> ${updatedResource.platform}</p>
+                <p><strong>Estado:</strong> ${updatedResource.status}</p>
+                <p><strong>Formato:</strong> ${updatedResource.format}</p>
+                <p><strong>Fecha de Terminación:</strong> ${updatedResource.finishDate || 'N/A'}</p>
+                <p><strong>Valoración:</strong> ${updatedResource.rating ? '⭐'.repeat(updatedResource.rating) : 'N/A'}</p>
+                <p><strong>Reseña:</strong> ${updatedResource.review || 'N/A'}</p>
+                <button class="edit-btn">Editar</button>
+                <button class="delete-btn">Eliminar</button>
+            `;
+
+            // Re-asigna las funcionalidades de editar y eliminar
+            card.querySelector('.edit-btn').addEventListener('click', () => editResource(card, updatedResource));
+            card.querySelector('.delete-btn').addEventListener('click', () => {
+                card.parentElement.removeChild(card); // Remueve la tarjeta del DOM
+                removeResourceFromLocalStorage(updatedResource); // Actualiza localStorage
+            });
         }
     });
 }
 
-// Llamar a la función cuando se carga la página
-window.addEventListener('load', loadResourcesFromLocalStorage);
+// Función para guardar los recursos en localStorage
+function saveResourcesToLocalStorage() {
+    const resources = {
+        series: [],
+        movies: [],
+        books: []
+    };
 
-// Filtrado y búsqueda (puedes extender esto según tus necesidades)
-const searchInput = document.getElementById('search');
-const statusFilter = document.getElementById('status-filter');
-const formatFilter = document.getElementById('format-filter');
-const platformFilter = document.getElementById('platform-filter');
+    document.querySelectorAll('.resource-card').forEach((card) => {
+        const resource = {
+            id: card.dataset.id,
+            name: card.querySelector('h3').textContent,
+            genre: card.querySelector('p:nth-of-type(1)').textContent.split(': ')[1],
+            platform: card.querySelector('p:nth-of-type(2)').textContent.split(': ')[1],
+            status: card.querySelector('p:nth-of-type(3)').textContent.split(': ')[1],
+            format: card.querySelector('p:nth-of-type(4)').textContent.split(': ')[1],
+            finishDate: card.querySelector('p:nth-of-type(5)').textContent.split(': ')[1],
+            rating: card.querySelector('p:nth-of-type(6)').textContent.split(': ')[1].length,
+            review: card.querySelector('p:nth-of-type(7)').textContent.split(': ')[1]
+        };
 
-searchInput.addEventListener('input', filterResources);
-statusFilter.addEventListener('change', filterResources);
-formatFilter.addEventListener('change', filterResources);
-platformFilter.addEventListener('change', filterResources);
+        if (resource.format === 'serie') {
+            resources.series.push(resource);
+        } else if (resource.format === 'pelicula') {
+            resources.movies.push(resource);
+        } else if (resource.format === 'libro') {
+            resources.books.push(resource);
+        }
+    });
 
-function filterResources() {
-    const searchValue = searchInput.value.toLowerCase();
-    const statusValue = statusFilter.value.toLowerCase();
-    const formatValue = formatFilter.value.toLowerCase();
-    const platformValue = platformFilter.value.toLowerCase();
-
-    filterCategory(seriesList, searchValue, statusValue, formatValue, platformValue);
-    filterCategory(moviesList, searchValue, statusValue, formatValue, platformValue);
-    filterCategory(booksList, searchValue, statusValue, formatValue, platformValue);
+    localStorage.setItem('resources', JSON.stringify(resources));
 }
 
-function filterCategory(category, searchValue, statusValue, formatValue, platformValue) {
-    const cards = category.getElementsByClassName('resource-card');
+// Función para cargar los recursos desde localStorage
+function loadResourcesFromLocalStorage() {
+    const storedResources = JSON.parse(localStorage.getItem('resources'));
 
-    for (let card of cards) {
-        const name = card.querySelector('h3').textContent.toLowerCase();
-        const status = card.querySelector('p:nth-of-type(4)').textContent.toLowerCase();
-        const format = card.querySelector('p:nth-of-type(3)').textContent.toLowerCase();
-        const platform = card.querySelector('p:nth-of-type(2)').textContent.toLowerCase();
-
-        const matchesSearch = name.includes(searchValue);
-        const matchesStatus = statusValue === 'all' || status.includes(statusValue);
-        const matchesFormat = formatValue === 'all' || format.includes(formatValue);
-        const matchesPlatform = platformValue === 'all' || platform.includes(platformValue);
-
-        if (matchesSearch && matchesStatus && matchesFormat && matchesPlatform) {
-            card.style.display = '';
-        } else {
-            card.style.display = 'none';
-        }
+    if (storedResources) {
+        storedResources.series.forEach((resource) => addResourceToCategory(seriesList, resource));
+        storedResources.movies.forEach((resource) => addResourceToCategory(moviesList, resource));
+        storedResources.books.forEach((resource) => addResourceToCategory(booksList, resource));
     }
+}
+
+// Función para eliminar un recurso de localStorage
+function removeResourceFromLocalStorage(resource) {
+    const storedResources = JSON.parse(localStorage.getItem('resources'));
+
+    if (storedResources) {
+        if (resource.format === 'serie') {
+            storedResources.series = storedResources.series.filter((item) => item.id !== resource.id);
+        } else if (resource.format === 'pelicula') {
+            storedResources.movies = storedResources.movies.filter((item) => item.id !== resource.id);
+        } else if (resource.format === 'libro') {
+            storedResources.books = storedResources.books.filter((item) => item.id !== resource.id);
+        }
+
+        localStorage.setItem('resources', JSON.stringify(storedResources));
+    }
+}
+
+//Función para eliminar todos los recursos
+function deleteAllResources(){
+    seriesList.innerHTML = '';
+    moviesList.innerHTML = '';
+    booksList.innerHTML = '';
+
+    localStorage.removeItem('resources');
 }

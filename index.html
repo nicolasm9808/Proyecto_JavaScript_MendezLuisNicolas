@@ -22,9 +22,9 @@
         </select>
         <select id="format-filter">
             <option value="">Formato</option>
-            <option value="serie">Serie</option>
-            <option value="pelicula">Película</option>
-            <option value="libro">Libro</option>
+            <option value="serie">Series</option>
+            <option value="pelicula">Películas</option>
+            <option value="libro">Libros</option>
         </select>
         <select id="platform-filter">
             <option value="">Plataforma</option>
@@ -34,7 +34,12 @@
             <option value="kindle">Kindle</option>
         </select>
     </div>
-    <button id="add-resource-btn">Agregar Recurso</button>
+    <div class="resource-management">
+        <button id="add-resource-btn">Agregar Nuevo Recurso</button>
+        <button id="delete-all-btn">Eliminar Todos los Recursos</button>
+    </div>
+
+
     <main>
         <section id="series-section" class="category">
             <h2>Series</h2>
@@ -52,7 +57,7 @@
         </section>
     </main>
 
-    <!-- Modal para agregar recurso -->
+    <!-- Modal para agregar nuevo recurso -->
     <div id="add-resource-modal" class="modal">
         <div class="modal-content">
             <span class="close-btn">&times;</span>
