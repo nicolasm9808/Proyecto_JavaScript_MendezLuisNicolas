@@ -15,19 +15,19 @@
     <div class="filters">
         <input type="text" id="search" placeholder="Buscar por nombre...">
         <select id="status-filter">
-            <option value="">Estado</option>
+            <option value="" selected disabled>Estado</option>
             <option value="pendiente">Pendiente</option>
             <option value="en progreso">En progreso</option>
             <option value="terminado">Terminado</option>
         </select>
         <select id="format-filter">
-            <option value="">Formato</option>
+            <option value="" selected disabled>Formato</option>
             <option value="serie">Series</option>
             <option value="pelicula">Películas</option>
             <option value="libro">Libros</option>
         </select>
         <select id="platform-filter">
-            <option value="">Plataforma</option>
+            <option value=""selected disabled>Plataforma</option>
             <option value="netflix">Netflix</option>
             <option value="amazon">Amazon</option>
             <option value="hbo">HBO</option>
@@ -73,6 +73,7 @@
 
                 <label for="resource-status">Estado:</label>
                 <select id="resource-status" required>
+                    <option value=""selected disabled>Estado</option>
                     <option value="pendiente">Pendiente</option>
                     <option value="en progreso">En progreso</option>
                     <option value="terminado">Terminado</option>
@@ -80,6 +81,7 @@
 
                 <label for="resource-format">Formato:</label>
                 <select id="resource-format" required>
+                    <option value="" selected disabled>Formato</option>
                     <option value="serie">Serie</option>
                     <option value="pelicula">Película</option>
                     <option value="libro">Libro</option>

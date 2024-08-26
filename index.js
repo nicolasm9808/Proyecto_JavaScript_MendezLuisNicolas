@@ -9,11 +9,11 @@ const moviesList = document.getElementById('movies-list');
 const booksList = document.getElementById('books-list');
 
 let editingResource = null; // Variable para guardar el recurso que se está editando
-
-// Generador de IDs únicos (puedes usar librerías como UUID en producción)
+let uniqueId = 0
+// Generador de IDs únicos
 function generateUniqueId() {
-    return '_' + Math.random().toString(36).substr(2, 9);
-}
+    uniqueId += 1
+};
 
 // Abre el modal
 addResourceBtn.addEventListener("click", () => {
@@ -189,6 +189,13 @@ function saveResourcesToLocalStorage() {
     };
 
     document.querySelectorAll('.resource-card').forEach((card) => {
+        var cardRating = card.querySelector('p:nth-of-type(6)').textContent.split(': ')[1];
+        if (cardRating === "N/A") {
+            cardRating = "";
+        } else{
+            cardRating = cardRating.length;
+        }
+
         const resource = {
             id: card.dataset.id,
             name: card.querySelector('h3').textContent,
@@ -197,7 +204,7 @@ function saveResourcesToLocalStorage() {
             status: card.querySelector('p:nth-of-type(3)').textContent.split(': ')[1],
             format: card.querySelector('p:nth-of-type(4)').textContent.split(': ')[1],
             finishDate: card.querySelector('p:nth-of-type(5)').textContent.split(': ')[1],
-            rating: card.querySelector('p:nth-of-type(6)').textContent.split(': ')[1].length,
+            rating: cardRating,
             review: card.querySelector('p:nth-of-type(7)').textContent.split(': ')[1]
         };
 
