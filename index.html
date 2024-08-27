@@ -62,42 +62,47 @@
         <div class="modal-content">
             <span class="close-btn">&times;</span>
             <form id="add-resource-form">
-                <label for="resource-name">Nombre del Recurso:</label>
-                <input type="text" id="resource-name" required>
-
+                <label for="resource-name">Nombre:</label>
+                <input type="text" id="resource-name" name="name" required>
+                
                 <label for="resource-genre">Género:</label>
-                <input type="text" id="resource-genre" required>
-
+                <div id="genre-container">
+                    <label><input type="checkbox" name="genre" value="Acción"> Acción</label>
+                    <label><input type="checkbox" name="genre" value="Comedia"> Comedia</label>
+                    <label><input type="checkbox" name="genre" value="Drama"> Drama</label>
+                    <label><input type="checkbox" name="genre" value="Fantasía"> Fantasía</label>
+                    <label><input type="checkbox" name="genre" value="Romance"> Romance</label>
+                    <!-- Agrega más géneros aquí -->
+                </div>
+                
                 <label for="resource-platform">Plataforma:</label>
-                <input type="text" id="resource-platform" required>
-
+                <input type="text" id="resource-platform" name="platform" required>
+                
                 <label for="resource-status">Estado:</label>
-                <select id="resource-status" required>
-                    <option value=""selected disabled>Estado</option>
+                <select id="resource-status" name="status">
                     <option value="pendiente">Pendiente</option>
                     <option value="en progreso">En progreso</option>
                     <option value="terminado">Terminado</option>
                 </select>
-
+                
                 <label for="resource-format">Formato:</label>
-                <select id="resource-format" required>
-                    <option value="" selected disabled>Formato</option>
+                <select id="resource-format" name="format">
                     <option value="serie">Serie</option>
                     <option value="pelicula">Película</option>
                     <option value="libro">Libro</option>
                 </select>
-
+                
                 <label for="resource-finish-date">Fecha de Terminación:</label>
-                <input type="date" id="resource-finish-date">
-
-                <label for="resource-rating">Valoración Final (1 a 5 estrellas):</label>
-                <input type="number" id="resource-rating" min="1" max="5">
-
-                <label for="resource-review">Reseña Personal:</label>
-                <textarea id="resource-review" rows="4"></textarea>
-
-                <button type="submit">Agregar Recurso</button>
-            </form>
+                <input type="date" id="resource-finish-date" name="finishDate">
+                
+                <label for="resource-rating">Valoración:</label>
+                <input type="number" id="resource-rating" name="rating" min="1" max="5">
+                
+                <label for="resource-review">Reseña:</label>
+                <textarea id="resource-review" name="review"></textarea>
+                
+                <button type="submit">Guardar</button>
+            </form>            
         </div>
     </div>
 

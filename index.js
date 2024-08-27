@@ -9,11 +9,13 @@ const moviesList = document.getElementById('movies-list');
 const booksList = document.getElementById('books-list');
 
 let editingResource = null; // Variable para guardar el recurso que se está editando
-let uniqueId = 0
+let uniqueId = 0;
+
 // Generador de IDs únicos
 function generateUniqueId() {
-    uniqueId += 1
-};
+    uniqueId += 1;
+    return uniqueId;
+}
 
 // Abre el modal
 addResourceBtn.addEventListener("click", () => {
@@ -22,12 +24,12 @@ addResourceBtn.addEventListener("click", () => {
 });
 
 // Evento para eliminar todos los recursos
-deleteAllBtn.addEventListener('click', () => {
-    let confirmDeleteAll = confirm('¿Estás seguro que deseas eliminar todos los recursos?\n¡Esta acción no se puede deshacer!')
+deleteAllBtn.addEventListener('click', async () => {
+    let confirmDeleteAll = confirm('¿Estás seguro que deseas eliminar todos los recursos?\n¡Esta acción no se puede deshacer!');
     if (confirmDeleteAll) {
-        deleteAllResources();
+        await deleteAllResources();
     }
-})
+});
 
 // Cierra el modal
 closeModalBtn.addEventListener('click', () => {
@@ -41,28 +43,53 @@ window.addEventListener('click', (event) => {
     }
 });
 
-// Cargar los recursos desde localStorage al cargar la página
-window.addEventListener('load', () => {
-    loadResourcesFromLocalStorage();
+// Cargar los recursos desde la API al cargar la página
+window.addEventListener('load', async () => {
+    await loadResourcesFromApi();
 });
 
 // Toma la información del recurso en el formulario y realiza las validaciones necesarias
-addResourceForm.addEventListener('submit', (event) => {
+addResourceForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const name = document.getElementById('resource-name').value;
-    const genre = document.getElementById('resource-genre').value;
+
+    // Recolecta todos los géneros seleccionados
+    const genreCheckboxes = document.querySelectorAll('input[name="genre"]:checked');
+    const genres = Array.from(genreCheckboxes).map(checkbox => checkbox.value);
+
     const platform = document.getElementById('resource-platform').value;
     const status = document.getElementById('resource-status').value;
     const format = document.getElementById('resource-format').value;
     const finishDate = document.getElementById('resource-finish-date').value;
     const rating = document.getElementById('resource-rating').value;
     const review = document.getElementById('resource-review').value;
-    
+
+    // Validación de fecha menor a hoy
+    const today = new Date();
+    const date = new Date(finishDate);
+    if (date > today) {
+        alert("Fecha inválida\n¡Por favor intentalo de nuevo!");
+        return;
+    }
+
+    // Validaciones para el estado Terminado
+    if (status === "terminado") {
+        if (!finishDate || !rating || !review) {
+            alert("Campos faltantes. Para marcar como terminado, todos los campos de fecha, valoración y reseña deben estar completos.");
+            return;
+        }
+    } else {
+        if (finishDate || rating || review) {
+            alert("Campos inválidos. No puede haber fecha, valoración o reseña si el estado no es 'terminado'.");
+            return;
+        }
+    }
+
     const newResource = {
         id: editingResource ? editingResource.id : generateUniqueId(),
         name,
-        genre,
+        genre: genres, // Aquí se guardan todos los géneros seleccionados
         platform,
         status,
         finishDate,
@@ -71,48 +98,16 @@ addResourceForm.addEventListener('submit', (event) => {
         format
     };
 
-    //Validación de fecha menor a hoy
-    var today = new Date();
-    var date = new Date(finishDate);
-    if (date > today) {
-        alert("Fecha inválida\n¡Por favor intentelo de nuevo!")
-        .break
-    }
-
-    //Validaciones para el estado Terminado
-    if (status === "terminado") {
-        if (finishDate && rating && review) {
-            applyChanges(newResource);
-        } else {
-            alert("Campos faltantes en el formulario\n¡Por favor intentelo de nuevo!")
-            .break
-        }
-    } else {
-        if (finishDate || rating || review) {
-            alert("Campos inválidos, aún no ha terminado el recurso\n¡Por favor intentelo de nuevo!")
-            .break
-        } else {
-            applyChanges(newResource);
-        }
-    }
-    
-});
-
-//Función para aplicar los cambios después de las validaciones del formulario para agregar o editar un recurso
-function applyChanges(newResource){
     if (editingResource) {
-        // Actualiza el recurso existente
-        updateResource(newResource);
+        await updateResource(newResource);
     } else {
-        // Agrega un nuevo recurso
-        addResource(newResource);
+        await addResource(newResource);
     }
 
     // Limpia el formulario y cierra el modal
     addResourceForm.reset();
     addResourceModal.style.display = 'none';
-    saveResourcesToLocalStorage(); // Guarda los cambios en localStorage
-}
+});
 
 // Función para agregar un recurso a una categoría específica
 function addResourceToCategory(category, resource) {
@@ -122,7 +117,7 @@ function addResourceToCategory(category, resource) {
 
     resourceCard.innerHTML = `
         <h3>${resource.name}</h3>
-        <p><strong>Género:</strong> ${resource.genre}</p>
+        <p><strong>Género:</strong> ${resource.genre.join(', ')}</p>
         <p><strong>Plataforma:</strong> ${resource.platform}</p>
         <p><strong>Estado:</strong> ${resource.status}</p>
         <p><strong>Formato:</strong> ${resource.format}</p>
@@ -138,9 +133,9 @@ function addResourceToCategory(category, resource) {
     const deleteBtn = resourceCard.querySelector('.delete-btn');
 
     editBtn.addEventListener('click', () => editResource(resourceCard, resource));
-    deleteBtn.addEventListener('click', () => {
+    deleteBtn.addEventListener('click', async () => {
         category.removeChild(resourceCard);
-        removeResourceFromLocalStorage(resource);
+        await removeResourceFromApi(resource);
     });
 
     // Añadir la tarjeta al contenedor de la categoría
@@ -148,21 +143,32 @@ function addResourceToCategory(category, resource) {
 }
 
 // Función para agregar un recurso a la categoría correcta
-function addResource(resource) {
-    if (resource.format === 'serie') {
-        addResourceToCategory(seriesList, resource);
-    } else if (resource.format === 'pelicula') {
-        addResourceToCategory(moviesList, resource);
-    } else if (resource.format === 'libro') {
-        addResourceToCategory(booksList, resource);
-    }
+async function addResource(resource) {
+    await fetch('https://66ce25c5199b1d628687ec95.mockapi.io/resources', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(resource)
+    });
+
+    addResourceToCategory(
+        resource.format === 'serie' ? seriesList :
+        resource.format === 'pelicula' ? moviesList :
+        booksList, resource
+    );
 }
 
-// Función para editar un recurso, abre el modal e ingresa los datos pre existentes
+// Función para editar un recurso
 function editResource(card, resource) {
     editingResource = resource;
     document.getElementById('resource-name').value = resource.name;
-    document.getElementById('resource-genre').value = resource.genre;
+
+    // Marca las casillas de verificación para los géneros seleccionados
+    document.querySelectorAll('input[name="genre"]').forEach(checkbox => {
+        checkbox.checked = resource.genre.includes(checkbox.value);
+    });
+
     document.getElementById('resource-platform').value = resource.platform;
     document.getElementById('resource-status').value = resource.status;
     document.getElementById('resource-format').value = resource.format;
@@ -170,118 +176,77 @@ function editResource(card, resource) {
     document.getElementById('resource-rating').value = resource.rating;
     document.getElementById('resource-review').value = resource.review;
 
+    // Asegúrate de que el modal esté visible
     addResourceModal.style.display = 'block';
 }
 
 // Función para actualizar un recurso
-function updateResource(updatedResource) {
-    // Actualiza el objeto de recurso
-    editingResource = updatedResource;
-
-    // Guarda los cambios en localStorage
-    saveResourcesToLocalStorage(); 
-
-    // Actualiza el DOM directamente
-    const resourceCards = document.querySelectorAll('.resource-card');
-    resourceCards.forEach((card) => {
-        const cardId = card.dataset.id;
-        if (cardId === updatedResource.id) { // Comparar con el identificador único
-            card.innerHTML = `
-                <h3>${updatedResource.name}</h3>
-                <p><strong>Género:</strong> ${updatedResource.genre}</p>
-                <p><strong>Plataforma:</strong> ${updatedResource.platform}</p>
-                <p><strong>Estado:</strong> ${updatedResource.status}</p>
-                <p><strong>Formato:</strong> ${updatedResource.format}</p>
-                <p><strong>Fecha de Terminación:</strong> ${updatedResource.finishDate || 'N/A'}</p>
-                <p><strong>Valoración:</strong> ${updatedResource.rating ? '⭐'.repeat(updatedResource.rating) : 'N/A'}</p>
-                <p><strong>Reseña:</strong> ${updatedResource.review || 'N/A'}</p>
-                <button class="edit-btn">Editar</button>
-                <button class="delete-btn">Eliminar</button>
-            `;
-
-            // Re-asigna las funcionalidades de editar y eliminar
-            card.querySelector('.edit-btn').addEventListener('click', () => editResource(card, updatedResource));
-            card.querySelector('.delete-btn').addEventListener('click', () => {
-                card.parentElement.removeChild(card); // Remueve la tarjeta del DOM
-                removeResourceFromLocalStorage(updatedResource); // Actualiza localStorage
-            });
-        }
-    });
-}
-
-// Función para guardar los recursos en localStorage
-function saveResourcesToLocalStorage() {
-    const resources = {
-        series: [],
-        movies: [],
-        books: []
-    };
-
-    document.querySelectorAll('.resource-card').forEach((card) => {
-        var cardRating = card.querySelector('p:nth-of-type(6)').textContent.split(': ')[1];
-        if (cardRating === "N/A") {
-            cardRating = "";
-        } else{
-            cardRating = cardRating.length;
-        }
-
-        const resource = {
-            id: card.dataset.id,
-            name: card.querySelector('h3').textContent,
-            genre: card.querySelector('p:nth-of-type(1)').textContent.split(': ')[1],
-            platform: card.querySelector('p:nth-of-type(2)').textContent.split(': ')[1],
-            status: card.querySelector('p:nth-of-type(3)').textContent.split(': ')[1],
-            format: card.querySelector('p:nth-of-type(4)').textContent.split(': ')[1],
-            finishDate: card.querySelector('p:nth-of-type(5)').textContent.split(': ')[1],
-            rating: cardRating,
-            review: card.querySelector('p:nth-of-type(7)').textContent.split(': ')[1]
-        };
-
-        if (resource.format === 'serie') {
-            resources.series.push(resource);
-        } else if (resource.format === 'pelicula') {
-            resources.movies.push(resource);
-        } else if (resource.format === 'libro') {
-            resources.books.push(resource);
-        }
+async function updateResource(updatedResource) {
+    await fetch(`https://66ce25c5199b1d628687ec95.mockapi.io/resources/${updatedResource.id}`, {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(updatedResource)
     });
 
-    localStorage.setItem('resources', JSON.stringify(resources));
-}
+    // Actualiza solo la tarjeta del recurso editado
+    const resourceCard = document.querySelector(`.resource-card[data-id="${updatedResource.id}"]`);
+    if (resourceCard) {
+        resourceCard.innerHTML = `
+            <h3>${updatedResource.name}</h3>
+            <p><strong>Género:</strong> ${updatedResource.genre.join(', ')}</p>
+            <p><strong>Plataforma:</strong> ${updatedResource.platform}</p>
+            <p><strong>Estado:</strong> ${updatedResource.status}</p>
+            <p><strong>Formato:</strong> ${updatedResource.format}</p>
+            <p><strong>Fecha de Terminación:</strong> ${updatedResource.finishDate || 'N/A'}</p>
+            <p><strong>Valoración:</strong> ${updatedResource.rating ? '⭐'.repeat(updatedResource.rating) : 'N/A'}</p>
+            <p><strong>Reseña:</strong> ${updatedResource.review || 'N/A'}</p>
+            <button class="edit-btn">Editar</button>
+            <button class="delete-btn">Eliminar</button>
+        `;
 
-// Función para cargar los recursos desde localStorage
-function loadResourcesFromLocalStorage() {
-    const storedResources = JSON.parse(localStorage.getItem('resources'));
-
-    if (storedResources) {
-        storedResources.series.forEach((resource) => addResourceToCategory(seriesList, resource));
-        storedResources.movies.forEach((resource) => addResourceToCategory(moviesList, resource));
-        storedResources.books.forEach((resource) => addResourceToCategory(booksList, resource));
+        // Re-asigna las funcionalidades de editar y eliminar
+        resourceCard.querySelector('.edit-btn').addEventListener('click', () => editResource(resourceCard, updatedResource));
+        resourceCard.querySelector('.delete-btn').addEventListener('click', async () => {
+            resourceCard.parentElement.removeChild(resourceCard); // Remueve la tarjeta del DOM
+            await removeResourceFromApi(updatedResource); // Actualiza la API
+        });
     }
 }
 
-// Función para eliminar un recurso de localStorage
-function removeResourceFromLocalStorage(resource) {
-    const storedResources = JSON.parse(localStorage.getItem('resources'));
+// Función para cargar los recursos desde la API
+async function loadResourcesFromApi() {
+    const response = await fetch('https://66ce25c5199b1d628687ec95.mockapi.io/resources');
+    const storedResources = await response.json();
 
-    if (storedResources) {
-        if (resource.format === 'serie') {
-            storedResources.series = storedResources.series.filter((item) => item.id !== resource.id);
-        } else if (resource.format === 'pelicula') {
-            storedResources.movies = storedResources.movies.filter((item) => item.id !== resource.id);
-        } else if (resource.format === 'libro') {
-            storedResources.books = storedResources.books.filter((item) => item.id !== resource.id);
-        }
-
-        localStorage.setItem('resources', JSON.stringify(storedResources));
-    }
+    storedResources.forEach((resource) => addResourceToCategory(
+        resource.format === 'serie' ? seriesList :
+        resource.format === 'pelicula' ? moviesList :
+        booksList, resource
+    ));
 }
 
-//Función para eliminar todos los recursos
-function deleteAllResources(){
+// Función para eliminar un recurso de la API
+async function removeResourceFromApi(resource) {
+    await fetch(`https://66ce25c5199b1d628687ec95.mockapi.io/resources/${resource.id}`, {
+        method: 'DELETE'
+    });
+}
+
+// Función para eliminar todos los recursos
+async function deleteAllResources() {
+    const response = await fetch('https://66ce25c5199b1d628687ec95.mockapi.io/resources');
+    const resources = await response.json();
+
+    await Promise.all(resources.map(resource =>
+        fetch(`https://66ce25c5199b1d628687ec95.mockapi.io/resources/${resource.id}`, {
+            method: 'DELETE'
+        })
+    ));
+
+    // Limpiar el DOM
     seriesList.innerHTML = '';
     moviesList.innerHTML = '';
     booksList.innerHTML = '';
-
-    localStorage.removeItem('resources');
 }
