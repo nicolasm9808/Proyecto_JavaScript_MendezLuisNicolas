@@ -46,7 +46,7 @@ window.addEventListener('load', () => {
     loadResourcesFromLocalStorage();
 });
 
-// Maneja el envío del formulario para agregar o editar un recurso
+// Toma la información del recurso en el formulario y realiza las validaciones necesarias
 addResourceForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
@@ -58,7 +58,7 @@ addResourceForm.addEventListener('submit', (event) => {
     const finishDate = document.getElementById('resource-finish-date').value;
     const rating = document.getElementById('resource-rating').value;
     const review = document.getElementById('resource-review').value;
-
+    
     const newResource = {
         id: editingResource ? editingResource.id : generateUniqueId(),
         name,
@@ -71,6 +71,35 @@ addResourceForm.addEventListener('submit', (event) => {
         format
     };
 
+    //Validación de fecha menor a hoy
+    var today = new Date();
+    var date = new Date(finishDate);
+    if (date > today) {
+        alert("Fecha inválida\n¡Por favor intentelo de nuevo!")
+        .break
+    }
+
+    //Validaciones para el estado Terminado
+    if (status === "terminado") {
+        if (finishDate && rating && review) {
+            applyChanges(newResource);
+        } else {
+            alert("Campos faltantes en el formulario\n¡Por favor intentelo de nuevo!")
+            .break
+        }
+    } else {
+        if (finishDate || rating || review) {
+            alert("Campos inválidos, aún no ha terminado el recurso\n¡Por favor intentelo de nuevo!")
+            .break
+        } else {
+            applyChanges(newResource);
+        }
+    }
+    
+});
+
+//Función para aplicar los cambios después de las validaciones del formulario para agregar o editar un recurso
+function applyChanges(newResource){
     if (editingResource) {
         // Actualiza el recurso existente
         updateResource(newResource);
@@ -83,7 +112,7 @@ addResourceForm.addEventListener('submit', (event) => {
     addResourceForm.reset();
     addResourceModal.style.display = 'none';
     saveResourcesToLocalStorage(); // Guarda los cambios en localStorage
-});
+}
 
 // Función para agregar un recurso a una categoría específica
 function addResourceToCategory(category, resource) {
