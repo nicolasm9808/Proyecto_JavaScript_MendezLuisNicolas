@@ -15,20 +15,20 @@
     <div class="filters">
         <input type="text" id="search" placeholder="Buscar por nombre...">
         <select id="status-filter">
-            <option value="" selected disabled>Estado</option>
-            <option value="pendiente">Pendiente</option>
-            <option value="en progreso">En progreso</option>
-            <option value="terminado">Terminado</option>
+            <option value="" selected>Estado</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="En progreso">En progreso</option>
+            <option value="Terminado">Terminado</option>
         </select>
         <select id="format-filter">
-            <option value="" selected disabled>Formato</option>
-            <option value="serie">Series</option>
-            <option value="pelicula">Películas</option>
-            <option value="libro">Libros</option>
+            <option value="" selected>Formato</option>
+            <option value="Serie">Series</option>
+            <option value="Película">Películas</option>
+            <option value="Libro">Libros</option>
         </select>
         <select id="platform-filter">
-            <option value=""selected disabled>Plataforma</option>
-            <option value="netflix">Netflix</option>
+            <option value=""selected>Plataforma</option>
+            <option value="Netflix">Netflix</option>
             <option value="amazon">Amazon</option>
             <option value="hbo">HBO</option>
             <option value="kindle">Kindle</option>
@@ -75,21 +75,25 @@
                     <!-- Agrega más géneros aquí -->
                 </div>
                 
-                <label for="resource-platform">Plataforma:</label>
-                <input type="text" id="resource-platform" name="platform" required>
-                
-                <label for="resource-status">Estado:</label>
-                <select id="resource-status" name="status">
-                    <option value="pendiente">Pendiente</option>
-                    <option value="en progreso">En progreso</option>
-                    <option value="terminado">Terminado</option>
+                <select id="resource-platform" name="plataform" required>
+                    <option value="" selected disabled>Seleccione la plataforma</option>
+                    <option value="Netflix">Netflix</option>
                 </select>
                 
                 <label for="resource-format">Formato:</label>
-                <select id="resource-format" name="format">
-                    <option value="serie">Serie</option>
-                    <option value="pelicula">Película</option>
-                    <option value="libro">Libro</option>
+                <select id="resource-format" name="format" required>
+                    <option value="" selected disabled>Seleccione el formato</option>
+                    <option value="Serie">Serie</option>
+                    <option value="Película">Película</option>
+                    <option value="Libro">Libro</option>
+                </select>
+
+                <label for="resource-status">Estado:</label>
+                <select id="resource-status" name="status" required>
+                    <option value="" selected disabled>Seleccione el estado</option>
+                    <option value="Pendiente">Pendiente</option>
+                    <option value="En progreso">En progreso</option>
+                    <option value="Terminado">Terminado</option>
                 </select>
                 
                 <label for="resource-finish-date">Fecha de Terminación:</label>

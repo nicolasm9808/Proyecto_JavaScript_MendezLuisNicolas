@@ -11,6 +11,78 @@ const booksList = document.getElementById('books-list');
 let editingResource = null; // Variable para guardar el recurso que se está editando
 let uniqueId = 0;
 
+//Filtros
+const searchInput = document.getElementById('search');
+const statusFilter = document.getElementById('status-filter');
+const formatFilter = document.getElementById('format-filter');
+const platformFilter = document.getElementById('platform-filter');
+
+// Aplicar filtros mientras se escriben o cambian
+searchInput.addEventListener('input', applyFilterSearch);
+statusFilter.addEventListener('change', applyFilterStatus);
+formatFilter.addEventListener('change', applyFilterFormat);
+platformFilter.addEventListener('change', applyFilterPlataform);
+
+function applyFilterSearch() {
+    const searchText = searchInput.value.toLowerCase();
+    const allResourceCards = document.querySelectorAll('.resource-card');
+    allResourceCards.forEach(card => {
+        const name = card.querySelector('h3').textContent.toLowerCase();
+        const matchesSearch = name.includes(searchText);
+
+        if (matchesSearch) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function applyFilterStatus() {
+    const selectedStatus = statusFilter.value;
+    const allResourceCards = document.querySelectorAll('.resource-card');
+    allResourceCards.forEach(card => {
+        const status = card.querySelector('p:nth-of-type(4)').textContent.split(': ')[1];
+        const matchesStatus = !selectedStatus || status === selectedStatus;
+
+        if (matchesStatus) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function applyFilterFormat() {
+    const selectedFormat = formatFilter.value;
+    const allResourceCards = document.querySelectorAll('.resource-card');
+    allResourceCards.forEach(card => {
+        const format = card.querySelector('p:nth-of-type(3)').textContent.split(': ')[1];
+        const matchesFormat = !selectedFormat || format === selectedFormat;
+
+        if (matchesFormat) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
+function applyFilterPlataform() {
+    const selectedPlatform = platformFilter.value;
+    const allResourceCards = document.querySelectorAll('.resource-card');
+    allResourceCards.forEach(card => {
+        const platform = card.querySelector('p:nth-of-type(2)').textContent.split(': ')[1];
+        const matchesPlatform = !selectedPlatform || platform === selectedPlatform;
+
+        if (matchesPlatform) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+
 // Generador de IDs únicos
 function generateUniqueId() {
     uniqueId += 1;
@@ -59,12 +131,18 @@ addResourceForm.addEventListener('submit', async (event) => {
     const genres = Array.from(genreCheckboxes).map(checkbox => checkbox.value);
 
     const platform = document.getElementById('resource-platform').value;
-    const status = document.getElementById('resource-status').value;
     const format = document.getElementById('resource-format').value;
+    const status = document.getElementById('resource-status').value;
     const finishDate = document.getElementById('resource-finish-date').value;
     const rating = document.getElementById('resource-rating').value;
     const review = document.getElementById('resource-review').value;
 
+    //Validación de selección de género
+    if (genres.length == 0) {
+        alert("Debe seleccionar por lo menos un género");
+        return;
+    }
+    
     // Validación de fecha menor a hoy
     const today = new Date();
     const date = new Date(finishDate);
@@ -74,7 +152,7 @@ addResourceForm.addEventListener('submit', async (event) => {
     }
 
     // Validaciones para el estado Terminado
-    if (status === "terminado") {
+    if (status === "Terminado") {
         if (!finishDate || !rating || !review) {
             alert("Campos faltantes. Para marcar como terminado, todos los campos de fecha, valoración y reseña deben estar completos.");
             return;
@@ -91,11 +169,11 @@ addResourceForm.addEventListener('submit', async (event) => {
         name,
         genre: genres, // Aquí se guardan todos los géneros seleccionados
         platform,
+        format,
         status,
         finishDate,
         rating,
-        review,
-        format
+        review
     };
 
     if (editingResource) {
@@ -119,8 +197,8 @@ function addResourceToCategory(category, resource) {
         <h3>${resource.name}</h3>
         <p><strong>Género:</strong> ${resource.genre.join(', ')}</p>
         <p><strong>Plataforma:</strong> ${resource.platform}</p>
-        <p><strong>Estado:</strong> ${resource.status}</p>
         <p><strong>Formato:</strong> ${resource.format}</p>
+        <p><strong>Estado:</strong> ${resource.status}</p>
         <p><strong>Fecha de Terminación:</strong> ${resource.finishDate || 'N/A'}</p>
         <p><strong>Valoración:</strong> ${resource.rating ? '⭐'.repeat(resource.rating) : 'N/A'}</p>
         <p><strong>Reseña:</strong> ${resource.review || 'N/A'}</p>
@@ -153,8 +231,8 @@ async function addResource(resource) {
     });
 
     addResourceToCategory(
-        resource.format === 'serie' ? seriesList :
-        resource.format === 'pelicula' ? moviesList :
+        resource.format === 'Serie' ? seriesList :
+        resource.format === 'Película' ? moviesList :
         booksList, resource
     );
 }
@@ -170,8 +248,8 @@ function editResource(card, resource) {
     });
 
     document.getElementById('resource-platform').value = resource.platform;
-    document.getElementById('resource-status').value = resource.status;
     document.getElementById('resource-format').value = resource.format;
+    document.getElementById('resource-status').value = resource.status;
     document.getElementById('resource-finish-date').value = resource.finishDate;
     document.getElementById('resource-rating').value = resource.rating;
     document.getElementById('resource-review').value = resource.review;
@@ -197,8 +275,8 @@ async function updateResource(updatedResource) {
             <h3>${updatedResource.name}</h3>
             <p><strong>Género:</strong> ${updatedResource.genre.join(', ')}</p>
             <p><strong>Plataforma:</strong> ${updatedResource.platform}</p>
-            <p><strong>Estado:</strong> ${updatedResource.status}</p>
             <p><strong>Formato:</strong> ${updatedResource.format}</p>
+            <p><strong>Estado:</strong> ${updatedResource.status}</p>
             <p><strong>Fecha de Terminación:</strong> ${updatedResource.finishDate || 'N/A'}</p>
             <p><strong>Valoración:</strong> ${updatedResource.rating ? '⭐'.repeat(updatedResource.rating) : 'N/A'}</p>
             <p><strong>Reseña:</strong> ${updatedResource.review || 'N/A'}</p>
