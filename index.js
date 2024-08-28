@@ -8,59 +8,50 @@ const seriesList = document.getElementById('series-list');
 const moviesList = document.getElementById('movies-list');
 const booksList = document.getElementById('books-list');
 
+
 let editingResource = null; // Variable para guardar el recurso que se está editando
 let uniqueId = 0;
 
-//Filtros
+// Filtros
 const searchInput = document.getElementById('search');
 const statusFilter = document.getElementById('status-filter');
 const formatFilter = document.getElementById('format-filter');
 const platformFilter = document.getElementById('platform-filter');
+const genreFilter = document.getElementById('genre-filter');
+const clearFiltersBtn = document.getElementById('clear-filters');
 
 // Aplicar filtros mientras se escriben o cambian
-searchInput.addEventListener('input', applyFilterSearch);
-statusFilter.addEventListener('change', applyFilterStatus);
-formatFilter.addEventListener('change', applyFilterFormat);
-platformFilter.addEventListener('change', applyFilterPlataform);
+searchInput.addEventListener('input', applyFilters);
+statusFilter.addEventListener('change', applyFilters);
+formatFilter.addEventListener('change', applyFilters);
+platformFilter.addEventListener('change', applyFilters);
+genreFilter.addEventListener('change', applyFilters);
 
-function applyFilterSearch() {
+function applyFilters() {
     const searchText = searchInput.value.toLowerCase();
+    const selectedStatus = statusFilter.value;
+    const selectedFormat = formatFilter.value;
+    const selectedPlatform = platformFilter.value;
+    const selectedGenre = genreFilter.value;
+
     const allResourceCards = document.querySelectorAll('.resource-card');
+
     allResourceCards.forEach(card => {
         const name = card.querySelector('h3').textContent.toLowerCase();
-        const matchesSearch = name.includes(searchText);
-
-        if (matchesSearch) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-function applyFilterStatus() {
-    const selectedStatus = statusFilter.value;
-    const allResourceCards = document.querySelectorAll('.resource-card');
-    allResourceCards.forEach(card => {
         const status = card.querySelector('p:nth-of-type(4)').textContent.split(': ')[1];
-        const matchesStatus = !selectedStatus || status === selectedStatus;
-
-        if (matchesStatus) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
-    });
-}
-
-function applyFilterFormat() {
-    const selectedFormat = formatFilter.value;
-    const allResourceCards = document.querySelectorAll('.resource-card');
-    allResourceCards.forEach(card => {
         const format = card.querySelector('p:nth-of-type(3)').textContent.split(': ')[1];
-        const matchesFormat = !selectedFormat || format === selectedFormat;
+        const platform = card.querySelector('p:nth-of-type(2)').textContent.split(': ')[1];
+        const genre = card.querySelector('p:nth-of-type(1)').textContent.split(': ')[1];
 
-        if (matchesFormat) {
+        // Verificar si todos los filtros coinciden
+        const matchesSearch = !searchText || name.includes(searchText);
+        const matchesStatus = !selectedStatus || status === selectedStatus;
+        const matchesFormat = !selectedFormat || format === selectedFormat;
+        const matchesPlatform = !selectedPlatform || platform === selectedPlatform || platform.includes(selectedPlatform);
+        const matchesGenre = !selectedGenre || genre === selectedGenre || genre.includes(selectedGenre);
+
+        // Mostrar o esconder la tarjeta según si todos los filtros coinciden
+        if (matchesSearch && matchesStatus && matchesFormat && matchesPlatform && matchesGenre) {
             card.style.display = 'block';
         } else {
             card.style.display = 'none';
@@ -68,20 +59,23 @@ function applyFilterFormat() {
     });
 }
 
-function applyFilterPlataform() {
-    const selectedPlatform = platformFilter.value;
+// Función para limpiar todos los filtros
+function clearFilters() {
+    searchInput.value = '';
+    statusFilter.value = '';
+    formatFilter.value = '';
+    platformFilter.value = '';
+    genreFilter.value = '';
+
+    // Volver a mostrar todas las tarjetas
     const allResourceCards = document.querySelectorAll('.resource-card');
     allResourceCards.forEach(card => {
-        const platform = card.querySelector('p:nth-of-type(2)').textContent.split(': ')[1];
-        const matchesPlatform = !selectedPlatform || platform === selectedPlatform;
-
-        if (matchesPlatform) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = 'none';
-        }
+        card.style.display = 'block';
     });
 }
+
+// Evento para limpiar filtros al hacer clic en el botón
+clearFiltersBtn.addEventListener('click', clearFilters);
 
 // Generador de IDs únicos
 function generateUniqueId() {
@@ -118,6 +112,7 @@ window.addEventListener('click', (event) => {
 // Cargar los recursos desde la API al cargar la página
 window.addEventListener('load', async () => {
     await loadResourcesFromApi();
+    updateSectionTitlesVisibility();
 });
 
 // Toma la información del recurso en el formulario y realiza las validaciones necesarias
@@ -125,6 +120,7 @@ addResourceForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
     const name = document.getElementById('resource-name').value;
+    const image = document.getElementById('imageLink').value;
 
     // Recolecta todos los géneros seleccionados
     const genreCheckboxes = document.querySelectorAll('input[name="genre"]:checked');
@@ -142,7 +138,7 @@ addResourceForm.addEventListener('submit', async (event) => {
         alert("Debe seleccionar por lo menos un género");
         return;
     }
-    
+
     // Validación de fecha menor a hoy
     const today = new Date();
     const date = new Date(finishDate);
@@ -167,7 +163,8 @@ addResourceForm.addEventListener('submit', async (event) => {
     const newResource = {
         id: editingResource ? editingResource.id : generateUniqueId(),
         name,
-        genre: genres, // Aquí se guardan todos los géneros seleccionados
+        image,
+        genre: genres,
         platform,
         format,
         status,
@@ -194,6 +191,7 @@ function addResourceToCategory(category, resource) {
     resourceCard.dataset.id = resource.id; // Agregar un atributo de datos único
 
     resourceCard.innerHTML = `
+        <img src="${resource.image}" alt="${resource.name}">
         <h3>${resource.name}</h3>
         <p><strong>Género:</strong> ${resource.genre.join(', ')}</p>
         <p><strong>Plataforma:</strong> ${resource.platform}</p>
@@ -232,15 +230,17 @@ async function addResource(resource) {
 
     addResourceToCategory(
         resource.format === 'Serie' ? seriesList :
-        resource.format === 'Película' ? moviesList :
-        booksList, resource
+            resource.format === 'Película' ? moviesList :
+                booksList, resource
     );
+    updateSectionTitlesVisibility();
 }
 
 // Función para editar un recurso
 function editResource(card, resource) {
     editingResource = resource;
     document.getElementById('resource-name').value = resource.name;
+    document.getElementById('imageLink').value = resource.image
 
     // Marca las casillas de verificación para los géneros seleccionados
     document.querySelectorAll('input[name="genre"]').forEach(checkbox => {
@@ -272,6 +272,7 @@ async function updateResource(updatedResource) {
     const resourceCard = document.querySelector(`.resource-card[data-id="${updatedResource.id}"]`);
     if (resourceCard) {
         resourceCard.innerHTML = `
+            <img src="${updatedResource.image}" alt="${updatedResource.name}">
             <h3>${updatedResource.name}</h3>
             <p><strong>Género:</strong> ${updatedResource.genre.join(', ')}</p>
             <p><strong>Plataforma:</strong> ${updatedResource.platform}</p>
@@ -299,9 +300,9 @@ async function loadResourcesFromApi() {
     const storedResources = await response.json();
 
     storedResources.forEach((resource) => addResourceToCategory(
-        resource.format === 'serie' ? seriesList :
-        resource.format === 'pelicula' ? moviesList :
-        booksList, resource
+        resource.format === 'Serie' ? seriesList :
+            resource.format === 'Película' ? moviesList :
+                booksList, resource
     ));
 }
 
@@ -310,6 +311,7 @@ async function removeResourceFromApi(resource) {
     await fetch(`https://66ce25c5199b1d628687ec95.mockapi.io/resources/${resource.id}`, {
         method: 'DELETE'
     });
+    updateSectionTitlesVisibility();
 }
 
 // Función para eliminar todos los recursos
@@ -327,4 +329,17 @@ async function deleteAllResources() {
     seriesList.innerHTML = '';
     moviesList.innerHTML = '';
     booksList.innerHTML = '';
+
+    updateSectionTitlesVisibility();
+}
+
+function updateSectionTitlesVisibility() {
+    const seriesTitle = document.getElementById('series-title');
+    const moviesTitle = document.getElementById('movies-title');
+    const booksTitle = document.getElementById('books-title');
+
+    // Oculta o muestra los títulos dependiendo de si las listas tienen contenido
+    seriesTitle.style.display = seriesList.children.length > 0 ? 'block' : 'none';
+    moviesTitle.style.display = moviesList.children.length > 0 ? 'block' : 'none';
+    booksTitle.style.display = booksList.children.length > 0 ? 'block' : 'none';
 }

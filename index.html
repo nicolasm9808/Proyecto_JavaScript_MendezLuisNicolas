@@ -1,19 +1,24 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Media Tracker</title>
     <link rel="stylesheet" href="styles.css">
 </head>
+
 <body>
     <header>
-        <img src="header-image.jpg" alt="Imagen de Encabezado">
+        <video autoplay muted loop id="headerVideo">
+            <source src="/resources-media/headerVideo.mp4" type="video/mp4">
+            Tu navegador no soporta el formato de video.
+        </video>
         <h1>Media Tracker</h1>
     </header>
 
     <div class="filters">
-        <input type="text" id="search" placeholder="Buscar por nombre...">
+        <input type="search" id="search" placeholder="Buscar por nombre...">
         <select id="status-filter">
             <option value="" selected>Estado</option>
             <option value="Pendiente">Pendiente</option>
@@ -27,33 +32,59 @@
             <option value="Libro">Libros</option>
         </select>
         <select id="platform-filter">
-            <option value=""selected>Plataforma</option>
+            <option value="" selected>Plataforma</option>
+            <option value="Amazon-Prime-Video">Amazon-Prime-Video</option>
+            <option value="Apple-TV+">Apple-TV+</option>
+            <option value="Crunchyroll">Crunchyroll</option>
+            <option value="Disney+">Disney+</option>
+            <option value="Funimation">Funimation</option>
+            <option value="Hulu">Hulu</option>
+            <option value="Kindle">Kindle</option>
+            <option value="Max">Max</option>
             <option value="Netflix">Netflix</option>
-            <option value="amazon">Amazon</option>
-            <option value="hbo">HBO</option>
-            <option value="kindle">Kindle</option>
+            <option value="Paramount+">Paramount+</option>
+            <option value="YouTube">YouTube</option>
         </select>
+        <select id="genre-filter">
+            <option value="" selected>Género</option>
+            <option value="Acción">Acción</option>
+            <option value="Animación">Animación</option>
+            <option value="Aventura">Aventura</option>
+            <option value="Biografía">Biografía</option>
+            <option value="Ciencia-Ficción">Ciencia-Ficción</option>
+            <option value="Comedia">Comedia</option>
+            <option value="Deporte">Deporte</option>
+            <option value="Documental">Documental</option>
+            <option value="Drama">Drama</option>
+            <option value="Familiar">Familiar</option>
+            <option value="Fantasía">Fantasía</option>
+            <option value="Misterio">Misterio</option>
+            <option value="Musical">Musical</option>
+            <option value="Romance">Romance</option>
+            <option value="Suspenso">Suspenso</option>
+            <option value="Terror">Terror</option>
+        </select>
+        <button id="clear-filters">Limpiar Filtros</button>
     </div>
     <div class="resource-management">
         <button id="add-resource-btn">Agregar Nuevo Recurso</button>
         <button id="delete-all-btn">Eliminar Todos los Recursos</button>
     </div>
 
-
     <main>
         <section id="series-section" class="category">
-            <h2>Series</h2>
-            <div id="series-list"></div>
+            <h2 id="series-title">Series</h2>
+            <div id="series-list" class="list"></div>
         </section>
 
         <section id="movies-section" class="category">
-            <h2>Películas</h2>
-            <div id="movies-list"></div>
+            <h2 id="movies-title">Películas</h2>
+            <div id="movies-list" class="list"></div>
         </section>
 
         <section id="books-section" class="category">
-            <h2>Libros</h2>
-            <div id="books-list"></div>
+            <h2 id="books-title">Libros</h2>
+            <div id="books-list" class="list"></div>
         </section>
     </main>
 
@@ -64,22 +95,46 @@
             <form id="add-resource-form">
                 <label for="resource-name">Nombre:</label>
                 <input type="text" id="resource-name" name="name" required>
-                
+                <label for="imageLink">URL de imagen:</label>
+                <input type="url" id="imageLink" name="imageLink" placeholder="Ingrese el link de la imagen" required>
+
+
                 <label for="resource-genre">Género:</label>
                 <div id="genre-container">
                     <label><input type="checkbox" name="genre" value="Acción"> Acción</label>
+                    <label><input type="checkbox" name="genre" value="Animación"> Animación</label>
+                    <label><input type="checkbox" name="genre" value="Aventura"> Aventura</label>
+                    <label><input type="checkbox" name="genre" value="Biografía"> Biografía</label>
+                    <label><input type="checkbox" name="genre" value="Ciencia-Ficción"> Ciencia-Ficción</label>
                     <label><input type="checkbox" name="genre" value="Comedia"> Comedia</label>
+                    <label><input type="checkbox" name="genre" value="Deporte"> Deporte</label>
+                    <label><input type="checkbox" name="genre" value="Documental"> Documental</label>
                     <label><input type="checkbox" name="genre" value="Drama"> Drama</label>
+                    <label><input type="checkbox" name="genre" value="Familiar"> Familiar</label>
                     <label><input type="checkbox" name="genre" value="Fantasía"> Fantasía</label>
+                    <label><input type="checkbox" name="genre" value="Misterio"> Misterio</label>
+                    <label><input type="checkbox" name="genre" value="Musical"> Musical</label>
                     <label><input type="checkbox" name="genre" value="Romance"> Romance</label>
-                    <!-- Agrega más géneros aquí -->
+                    <label><input type="checkbox" name="genre" value="Suspenso"> Suspenso</label>
+                    <label><input type="checkbox" name="genre" value="Terror"> Terror</label>
                 </div>
-                
+
+                <label for="resource-platform">Plataforma:</label>
                 <select id="resource-platform" name="plataform" required>
-                    <option value="" selected disabled>Seleccione la plataforma</option>
+                    <option value="" selected>Seleccione la plataforma</option>
+                    <option value="Amazon-Prime-Video">Amazon-Prime-Video</option>
+                    <option value="Apple-TV+">Apple-TV+</option>
+                    <option value="Crunchyroll">Crunchyroll</option>
+                    <option value="Disney+">Disney+</option>
+                    <option value="Funimation">Funimation</option>
+                    <option value="Hulu">Hulu</option>
+                    <option value="Kindle">Kindle</option>
+                    <option value="Max">Max</option>
                     <option value="Netflix">Netflix</option>
+                    <option value="Paramount+">Paramount+</option>
+                    <option value="YouTube">YouTube</option>
                 </select>
-                
+
                 <label for="resource-format">Formato:</label>
                 <select id="resource-format" name="format" required>
                     <option value="" selected disabled>Seleccione el formato</option>
@@ -95,18 +150,18 @@
                     <option value="En progreso">En progreso</option>
                     <option value="Terminado">Terminado</option>
                 </select>
-                
+
                 <label for="resource-finish-date">Fecha de Terminación:</label>
                 <input type="date" id="resource-finish-date" name="finishDate">
-                
+
                 <label for="resource-rating">Valoración:</label>
-                <input type="number" id="resource-rating" name="rating" min="1" max="5">
-                
+                <input type="number" id="resource-rating" name="rating" min="1" max="5" placeholder="Ingrese un valor entre 1 y 5">
+
                 <label for="resource-review">Reseña:</label>
                 <textarea id="resource-review" name="review"></textarea>
-                
+
                 <button type="submit">Guardar</button>
-            </form>            
+            </form>
         </div>
     </div>
 
@@ -116,4 +171,5 @@
 
     <script src="index.js"></script>
 </body>
+
 </html>
