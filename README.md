@@ -70,11 +70,17 @@ Copiar código
 A continuación, se muestran algunas capturas de pantalla del funcionamiento y diseño de la página:
 
 ### Página Principal
-
+![Página Principal](resources-media/Captura-inicio1.png)
+![Página Principal](resources-media/Captura-inicio2.png)
+![Página Principal](resources-media/Captura-inicio3.png)
+![Página Principal](resources-media/Captura-inicio4.png)
 ### Modal de Agregar Recurso
+![Página Principal](resources-media/Captura-formulario1.png)
+![Página Principal](resources-media/Captura-formulario2.png)
+![Página Principal](resources-media/Captura-formulario3.png)
 
 ### Vista de Recursos Filtrados
-
+![Página Principal](resources-media/Captura-filtros.png)
 ## Autor👨‍💻
 #### "IMPULSANDO LA INNOVACIÓN Y EL DESARROLLO TECNOLÓGICO"
 > Luis Nicolás Méndez
