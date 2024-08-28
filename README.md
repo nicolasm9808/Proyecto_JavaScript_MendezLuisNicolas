@@ -10,6 +10,10 @@ Edición y Eliminación: Modifica o elimina recursos fácilmente desde las tarje
 Diseño Responsivo: Adaptado a diferentes dispositivos, desde escritorio hasta móviles.
 
 ## 🎨 Diseño
+![Página Principal](resources-media/Disenio-pagina-principal.jpg)
+
+![Formulario Agregar nuevo Recurs](resources-media/Disenio-modal-nuevo-recurso.jpg)
+
 El diseño utiliza colores oscuros, violetas y detalles en neón, con tipografías modernas y ligeras. Se combina con un video de fondo en el header para agregar dinamismo visual.
 
 Colores: Fondo negro #000208 con acentos neón en tonos morados y lilas (#e1c1ff, #5d3cb1, #4d2fa2).
@@ -39,6 +43,7 @@ Copiar código
 ├── index.html         # Archivo principal HTML de la aplicación.
 ├── styles.css         # Estilos CSS personalizados.
 ├── index.js           # Funcionalidades JS para manejo de la lógica de la aplicación.
+├── Fuentes/           # Fuentes usadas en el HTML.
 └── resources-media/   # Carpeta con el video utilizado en el header.
 
 ## 🖥️ Tecnologías Utilizadas
